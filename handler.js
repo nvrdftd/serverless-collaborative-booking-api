@@ -1,14 +1,15 @@
 'use strict';
 
+const MongoClient = require('mongodb').MongoClient;
 const jwksClient = require('jwks-rsa');
 const jwt = require('jsonwebtoken');
-
+const config = require('./config');
+const comments = require('./models/comments');
 
 function requestException(err) {
   this.name = err.name;
   this.message = err.message;
 }
-
 
 // create a helper function to verify access tokens
 function verify(token, cb) {
@@ -20,7 +21,7 @@ function verify(token, cb) {
 
   client.getSigningKeys((err, signingKeys) => {
     if (err) {
-      cb(new requestException(err));
+      return cb(new requestException(err));
     }
 
     const options = {
@@ -28,6 +29,7 @@ function verify(token, cb) {
       issuer: 'https://nvrdftd.auth0.com/',
       algorithms: ['RS256']
     }
+
 
     jwt.verify(token, signingKeys[0].publicKey, options, (err, decoded) => {
       if (err) {
@@ -58,8 +60,17 @@ function generatePolicy(principalId, effect, resource) {
   return authResponse;
 }
 
+MongoClient.connect(config.dbUrl).then(db => {
+  module.exports.saveComment = (event. context, cb) => {
+    comments(db, event, cb);
+  }
+}).catch(err => console.log('db connection failed'));
+
 // custom authorizer before invoking APIs
 module.exports.auth = (event, context, cb) => {
+  if (!event.authorizationToken) {
+    return cb('Token Not Provided');
+  }
   const token = event.authorizationToken.split(' ')[1];
   verify(token, (err, decoded) => {
     if (err) {
@@ -74,8 +85,7 @@ module.exports.hello = (event, context, cb) => {
     statusCode: 200,
     body: JSON.stringify({
       message: 'Go Serverless v1.0! Your function executed successfully!',
-      input: event,
-    }),
+    })
   };
   cb(null, response);
 };
