@@ -10,5 +10,16 @@ functions:
         path: /
         method: get
         authorizer: auth
+        
+  saveComment:
+    handler: handler.saveComment
+    events:
+     - http:
+        path: /add
+        method: post
+     - http:
+        path: /delete
+        method: delete
+
   auth:
     handler: handler.auth
