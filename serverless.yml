@@ -4,22 +4,11 @@ provider:
   runtime: nodejs6.10
 functions:
   hello:
-    handler: handler.hello
+    handler: handler.designateManager
     events:
      - http:
-        path: /
+        path: /designateManager
         method: get
         authorizer: auth
-        
-  saveComment:
-    handler: handler.saveComment
-    events:
-     - http:
-        path: /add
-        method: post
-     - http:
-        path: /delete
-        method: delete
-
   auth:
     handler: handler.auth
